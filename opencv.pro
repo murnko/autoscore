@@ -28,3 +28,5 @@ DISTFILES += \
 HEADERS += \
     main.h \
     funkcje.h
+
+

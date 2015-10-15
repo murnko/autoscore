@@ -4,14 +4,24 @@
 int main(int argc, char *argv[])
 {
     ifstream baza_odpowiedzi;
-    baza_odpowiedzi.open("/media/store/GIT/test_creator/odpowiedzi.txt");
+    baza_odpowiedzi.open("/home/murnko/Documents/test_creator/odpowiedzi.txt");
     size_t rozm_bazy = sprawdz_baze(baza_odpowiedzi);
     cout <<"Rozmiar bazy: " << rozm_bazy << endl;
-    int ** dobre_odpowiedzi = new int*[(int)rozm_bazy/2];
-    int ** punkty_odpowiedzi = new int*[(int)rozm_bazy/2];
+    int ** dobre_odpowiedzi = new int*[(int)rozm_bazy/2-1];
+    int ** student_odpowiedzi = new int*[(int)rozm_bazy/2-1];
 
-
-
+    int ** punkty_odpowiedzi = new int*[(int)rozm_bazy/2-1];
+    int * liczba_pytan = new int[(int)rozm_bazy/2];//pozycja 0 przechowuje informację o liczbie wariantów odpowiedzi wybranych dla danego tesu
+    parsuj_odpowiedzi(baza_odpowiedzi,int(rozm_bazy),dobre_odpowiedzi,punkty_odpowiedzi,liczba_pytan);
+    cout << liczba_pytan[(int)rozm_bazy/2];
+//    for (int a=0;a<int(rozm_bazy)/2;a++){
+//        cout << endl;
+//        for (int b=0;b<liczba_pytan[a];b++){
+//            cout << punkty_odpowiedzi[a][b];
+//        }
+//        cout << endl;
+//    }
+    int ** student_kratki = new int* [(int)rozm_bazy/2];
     cv::Mat inputImage = cv::imread("/home/murnko/Documents/test.jpg");
     if (inputImage.empty()) return -1;
     cv::resize(inputImage, inputImage,cvSize(0,0),0.5, 0.5);
@@ -24,7 +34,7 @@ int main(int argc, char *argv[])
     vector<vector<cv::Point> >contours;
     cv::findContours(binary.clone(),contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
     std::vector<cv::Point> approx;
-    cv::Mat dst = inputImage.clone();
+    //cv::Mat dst = inputImage.clone();
     cv::Mat smallImage;
     for (vector<cv::Point> contour : contours)
     {
@@ -67,7 +77,7 @@ int main(int argc, char *argv[])
     //cv::bitwise_not(img, img);
 
     cv::Mat smallest;
-    int z = 0;
+    int       z = 0;
     cv::Mat crop(smallImage.rows, smallImage.cols, CV_8UC3);
     crop.setTo(cv::Scalar(0,255,0));
     cv::Mat mask = cv::Mat::zeros(smallImage.rows, smallImage.cols, CV_8UC1);

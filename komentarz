@@ -1,6 +1,9 @@
 AutoScore
 1. Odczyt pliku > OK
 2. Wykrywanie kształtu kratki odpowiedzi > OK
-3. Parsowanie kratek odpowiedzi
+3. Parsowanie kratek odpowiedzi > OK
+    Sortowanie kratek odpowiedzi
+    Tworzenie tablicy na kratki z pozycjami(struct)
+    Przekazanie liczby odpowiedzi > OK
 4. Ocena
 5. Wykrywanie numeru zestawu
