@@ -167,10 +167,11 @@ int t = 0;
     smallImage.copyTo(crop, mask);
     cv::imshow("crop", crop);
   //cvWaitKey(0);
-  int max_hist,odp,mediana;
+  int max_hist,odp,mediana,suma,srednia,dryf;
   kratka *mediana_tmp = new kratka[liczba_odp];
   for(int p=1; p<liczba_pytan[t]+1; p++){
       max_hist = 0;
+      suma = 0;
       copy(test_kratki[p],test_kratki[p]+liczba_odp,mediana_tmp);
       sort(mediana_tmp,mediana_tmp+liczba_odp,sortv);
       if (liczba_odp%2){
@@ -178,15 +179,33 @@ int t = 0;
       }
       else {
           mediana = (mediana_tmp[liczba_odp/2].wartosc+mediana_tmp[liczba_odp/2+1].wartosc)/2;
+          dryf = (mediana_tmp[liczba_odp/2+1].wartosc - mediana_tmp[liczba_odp/2].wartosc)/2;
       }
       for (int o=0; o<liczba_odp   ; o++){
-          cout << "wartosc_end: "<<test_kratki[p][o].wartosc<<endl;
-          if (test_kratki[p][o].wartosc > max_hist)
-             {odp = o; max_hist = test_kratki[p][o].wartosc;}
+          //cout << "wartosc_end: "<<test_kratki[p][o].wartosc<<endl;
+          suma += test_kratki[p][o].wartosc;
+      }
+       srednia = suma/liczba_odp;
           //smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
         //cv::imshow("malutki", smallest);
         //cvWaitKey(0);
-      }
+        if(srednia<mediana){
+            for (int o=0; o<liczba_odp   ; o++){
+                if (test_kratki[p][o].wartosc < mediana+(liczba_odp%2)*dryf && test_kratki[p][o].wartosc > max_hist){
+                    odp = o; max_hist = test_kratki[p][o].wartosc;
+                }
+                //cout << "wartosc_end: "<<test_kratki[p][o].wartosc<<endl;
+            }
+        }
+        else{
+            for (int o=0; o<liczba_odp   ; o++){
+                if (test_kratki[p][o].wartosc > srednia && test_kratki[p][o].wartosc < max_hist){
+                    odp = o; max_hist = test_kratki[p][o].wartosc;
+                }
+
+        }
+
+
       student_odpowiedzi[t][p-1] = odp;
 
   }
