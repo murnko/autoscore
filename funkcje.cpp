@@ -1,9 +1,6 @@
 #include "main.h"
 #include "funkcje.h"
 
-
-
-
 size_t sprawdz_baze(ifstream &baza_pytan){
     if( !baza_pytan.good() )  {cout << "bazaZla\n"; return -1;}
     baza_pytan.clear();
@@ -21,9 +18,6 @@ void parsuj_odpowiedzi(ifstream &baza, int rozmiar, int**klucz_odp, int**punkt_o
               string * wiersze = new string[rozmiar-2];
     int tmp=0;
     string delimiter = "|";
-
-
-
 
     for (int i = 0; i<rozmiar-2; i++){
         baza.getline(kolejna_linia, 256);
@@ -58,16 +52,12 @@ void parsuj_odpowiedzi(ifstream &baza, int rozmiar, int**klucz_odp, int**punkt_o
                     j++;
                     s.erase(0, pos + delimiter.length());
                 }
-
-
             }
-
         }
     baza.getline(kolejna_linia, 256);
     z = kolejna_linia;
     sscanf(z.c_str(), "%d", &tmp);
     dlugosci[rozmiar/2] = tmp;
-
             baza.clear();
             baza.seekg(0,ios::beg);
             //cout << "koniec wag pytań";

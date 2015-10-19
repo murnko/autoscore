@@ -9,6 +9,7 @@ struct kratka{
 };
 bool sortx(kratka const&lewa, kratka const&prawa) {return lewa.x < prawa.x; }
 bool sorty(kratka const&lewa, kratka const&prawa) {return lewa.y > prawa.y; }
+bool sortv(kratka const&lewa, kratka const&prawa) {return lewa.wartosc > prawa.wartosc; }
 int main(int argc, char *argv[])
 {
     ifstream baza_odpowiedzi;
@@ -23,7 +24,8 @@ int main(int argc, char *argv[])
 
     //wypełnia powyższe
     parsuj_odpowiedzi(baza_odpowiedzi,int(rozm_bazy),dobre_odpowiedzi,punkty_odpowiedzi,liczba_pytan);
-    cout <<"ilosc odpowiedzi " << liczba_pytan[(int)rozm_bazy/2]<<endl;
+    int liczba_odp = liczba_pytan[(int)rozm_bazy/2];
+    cout <<"ilosc odpowiedzi " << liczba_odp<<endl;
 
     int ** student_odpowiedzi = new int* [(int)rozm_bazy/2];//macierz testyXpytania dla odpowiedzi studenta
 //    for (int a=0;a<int(rozm_bazy)/2;a++){
@@ -43,7 +45,7 @@ int t = 0;
     //macierz do przechowywania wartości kratek dla jednego testu
     kratka ** test_kratki = new kratka*[liczba_pytan[t]+1];//jedno więcej na literki
     for (int p=0; p<liczba_pytan[t]+1;p++){
-        test_kratki[p] = new kratka[liczba_pytan[(int)rozm_bazy/2]+1];//jedno więcej na numerki
+        test_kratki[p] = new kratka[liczba_odp+1];//jedno więcej na numerki
     }
     cout <<"liczba pytan "<< liczba_pytan[t]<<endl;
     int liczba_kratek = (liczba_pytan[t]+1)*(liczba_pytan[((int)rozm_bazy/2)]+1);
@@ -139,7 +141,7 @@ int t = 0;
     int pos = 0;
     for (int p=0; p<liczba_pytan[t]+1; p++){
        cout << endl;
-        for(int o=0; o<liczba_pytan[(int)rozm_bazy/2]+1; o++){
+        for(int o=0; o<liczba_odp+1; o++){
             test_kratki[p][o] = wszystkie_kratki[pos];
             cout<<"y: "<<test_kratki[p][o].y <<"\tx: " <<test_kratki[p][o].x<< endl;
             pos++;
@@ -147,11 +149,11 @@ int t = 0;
     }
     cout <<"iteracje"<< pos<<endl;
     for(int p=0; p<liczba_pytan[t]+1; p++){
-        sort(test_kratki[p],test_kratki[p]+liczba_pytan[(int)rozm_bazy/2]+1,sorty);
+        sort(test_kratki[p],test_kratki[p]+liczba_odp+1,sorty);
     }
 
 
-    for (int o=0; o<liczba_pytan[(int)rozm_bazy/2]+1; o++){
+    for (int o=0; o<liczba_odp+1; o++){
         for(int p=0; p<liczba_pytan[t]+1; p++){
             cout<<"y: "<<test_kratki[p][o].y <<"\tx: " <<test_kratki[p][o].x<< endl;
         }
@@ -164,12 +166,20 @@ int t = 0;
   //cvWaitKey(0);
     smallImage.copyTo(crop, mask);
     cv::imshow("crop", crop);
-  cvWaitKey(0);
-  int max_hist,odp;
-
+  //cvWaitKey(0);
+  int max_hist,odp,mediana;
+  kratka *mediana_tmp = new kratka[liczba_odp];
   for(int p=1; p<liczba_pytan[t]+1; p++){
       max_hist = 0;
-      for (int o=0; o<liczba_pytan[(int)rozm_bazy/2]   ; o++){
+      copy(test_kratki[p],test_kratki[p]+liczba_odp,mediana_tmp);
+      sort(mediana_tmp,mediana_tmp+liczba_odp,sortv);
+      if (liczba_odp%2){
+          mediana = mediana_tmp[liczba_odp/2+1].wartosc;
+      }
+      else {
+          mediana = (mediana_tmp[liczba_odp/2].wartosc+mediana_tmp[liczba_odp/2+1].wartosc)/2;
+      }
+      for (int o=0; o<liczba_odp   ; o++){
           cout << "wartosc_end: "<<test_kratki[p][o].wartosc<<endl;
           if (test_kratki[p][o].wartosc > max_hist)
              {odp = o; max_hist = test_kratki[p][o].wartosc;}
