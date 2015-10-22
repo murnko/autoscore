@@ -56,7 +56,7 @@ int t = 0;
 
 
 //ZNALEZIENIE POLA ODPOWIEDZI
-    cv::Mat inputImage = cv::imread("/home/murnko/Documents/test.jpg");
+    cv::Mat inputImage = cv::imread("/home/murnko/Documents/testy6.jpg");
     if (inputImage.empty()) return -1;
     cv::resize(inputImage, inputImage,cvSize(0,0),0.5, 0.5);
     cv::Mat grayscale;
@@ -64,7 +64,7 @@ int t = 0;
     cv::Mat binary;
     cv::Canny(grayscale,binary,0,50,5);
     vector<vector<cv::Point> >contours;
-    cv::findContours(binary.clone(),contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary.clone(),contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
     std::vector<cv::Point> approx;
     //cv::Mat dst = inputImage.clone();
     cv::Mat smallImage;
@@ -87,15 +87,75 @@ int t = 0;
 
 //ROZPOZNANIE POLA ODPOWIEDZI
 
-    cv::Size size(5,5);
+    //cv::Size size(5,5);
     //cv::GaussianBlur(smallImage,smallImage,size,0);
 
 
+
+//WERSJA Z LINIAMI Hougha
+    cv::Mat mask_hough = cv::Mat::zeros(smallImage.rows, smallImage.cols, CV_8UC1);
+    cv::Mat dst, cdst;
     cv::cvtColor(smallImage,grayscale,CV_BGR2GRAY);
-    cv::adaptiveThreshold(grayscale,binary,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,75,10);
+    cv::Canny(grayscale, dst, 50, 200, 3);
+    cv::adaptiveThreshold(grayscale,dst,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV,75,10);
+    cv::cvtColor(mask_hough, mask_hough, CV_GRAY2BGR);
+
+    vector<cv::Vec2f> lines;
+        // detect lines
+        cv::HoughLines(dst, lines, 1, CV_PI/90, 100, 0, 0 );
+
+        // draw lines
+        for( size_t i = 0; i < lines.size(); i++ )
+        {
+            float rho = lines[i][0], theta = lines[i][1];
+            if( theta>CV_PI/180*175 || theta<CV_PI/180*5){
+            cv::Point pt1, pt2;
+            double a = cos(theta), b = sin(theta);
+            double x0 = a*rho, y0 = b*rho;
+            pt1.x = cvRound(x0 + 1000*(-b));
+            pt1.y = cvRound(y0 + 1000*(a));
+            pt2.x = cvRound(x0 - 1000*(-b));
+            pt2.y = cvRound(y0 - 1000*(a));
+            cv::line( mask_hough, pt1, pt2, cv::Scalar(0,0,255), 1, CV_AA);
+            imshow("detected lines",  mask_hough);
+            }
+        }
+        cv::HoughLines(dst, lines, 1, CV_PI/90, 300, 0, 0 );
+        for( size_t i = 0; i < lines.size(); i++ )
+        {
+            float rho = lines[i][0], theta = lines[i][1];
+            if( theta>CV_PI/180*88 && theta<CV_PI/180*92){
+                cv::Point pt1, pt2;
+                double a = cos(theta), b = sin(theta);
+                double x0 = a*rho, y0 = b*rho;
+                pt1.x = cvRound(x0 + 1000*(-b));
+                pt1.y = cvRound(y0 + 1000*(a));
+                pt2.x = cvRound(x0 - 1000*(-b));
+                pt2.y = cvRound(y0 - 1000*(a));
+                cv::line( mask_hough, pt1, pt2, cv::Scalar(0,0,255), 1, CV_AA);
+                imshow("detected lines",  mask_hough);
+            }
+        }
+
+
+
+
+        imshow("source", smallImage);
+     cvWaitKey(0);
+
+//KONIEC WERSJA Z LINIAMI Hougha
+
+
+
+
+
+    cv::cvtColor(mask_hough,grayscale,CV_BGR2GRAY);
+    //cv::adaptiveThreshold(grayscale,binary,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV,75,10);
     //cv::Canny(grayscale,binary,0,50,5);
-    cv::findContours(binary.clone(),contours,CV_RETR_LIST,CV_CHAIN_APPROX_NONE);
-    //cv::imshow("Druga kolejka", binary);
+    binary = grayscale;
+    cv::findContours(binary.clone(),contours,CV_RETR_LIST,CV_CHAIN_APPROX_SIMPLE);
+    cv::imshow("Druga kolejka", binary);
+    cvWaitKey(0);
     //cv::bitwise_not(img, img);
 
     cv::Mat smallest;
@@ -118,10 +178,11 @@ int t = 0;
         //cout << cv::contourArea(contour) <<endl;
         drawContours(mask, vector<vector<cv::Point> >(1,contour), -1, cv::Scalar(255), CV_FILLED);
           cv::Rect r = cv::boundingRect(contour);
-          //cout<< "wspolrzedne: "<<r.x<<"\t"<<r.y<<endl;
+          cout<< "wspolrzedne: "<<r.x<<"\t"<<r.y<<
+                 "\trozmiar"<< r.area()<<endl;
           smallest = cv::Mat(binary, r).clone();
 
-        //cv::imshow("malutki", smallest);
+        cv::imshow("malutki", smallest);
         int wartosc = smallest.rows * smallest.cols - cv::countNonZero(smallest);
         wszystkie_kratki[z].wartosc = wartosc;
         wszystkie_kratki[z].x = r.x;
@@ -130,8 +191,8 @@ int t = 0;
 
         //cout<<"wartosc: "<< wszystkie_kratki[z].wartosc << endl;
         //cout<<z<<endl;
-        //cv::imshow("maska pierwsza", mask);
-        //cvWaitKey(0);
+        cv::imshow("maska pierwsza", mask);
+        cvWaitKey(0);
         z++;
     }
     //cvWaitKey(0);
@@ -222,8 +283,7 @@ int t = 0;
       student_odpowiedzi[t][p-1] =  wariancja >1000 ? (liczba_odp-1-odp) : 9;
 
   }
-suma_punkty =0;
-student_punkty =0;
+suma_punkty = student_punkty =0;
 for (int p=0; p<liczba_pytan[t]; p++)
 {
       cout<<"odp: "<<student_odpowiedzi[t][p]<<endl;
@@ -233,15 +293,21 @@ for (int p=0; p<liczba_pytan[t]; p++)
       }
       suma_punkty += punkty_odpowiedzi[t][p];
 }
+cout<<"\nTEST: "<<t+1;
 cout<<"\nSTUDENT: \t";
 
 for (int p=0; p<liczba_pytan[t]; p++){
-        cout <<student_odpowiedzi[t][p]<< "  ";
+        if (student_odpowiedzi[t][p] < 9){
+        cout <<(char)(student_odpowiedzi[t][p]+65)<< "  ";
+        }
+        else{cout<<"x  ";}
 }
 cout<<"\nKLUCZ:  \t";
 for (int p=0; p<liczba_pytan[t]; p++){
-        cout <<dobre_odpowiedzi[t][p]<< "  ";
+        cout <<(char)(dobre_odpowiedzi[t][p]+65)<< "  ";
 }
+cout <<"\nWYNIK: " << student_punkty << "/"<<suma_punkty << "\t" <<(float)student_punkty/suma_punkty*100<<"%";
+cout << endl;
 //KONIEC JEDNEGO TESTU
 
 //cout<<"Znalezione kontury: "<< z <<endl;
