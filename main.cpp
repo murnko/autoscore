@@ -35,7 +35,8 @@ int main(int argc, char *argv[])
 //        }
 //        cout << endl;
 //    }
-
+    int suma_punkty;
+    int student_punkty;
 
 
 
@@ -167,11 +168,11 @@ int t = 0;
     smallImage.copyTo(crop, mask);
     cv::imshow("crop", crop);
   //cvWaitKey(0);
-  int max_hist,odp,mediana,suma,srednia,dryf;
+  int max_hist,odp,mediana,suma,srednia,dryf,wariancja;
   kratka *mediana_tmp = new kratka[liczba_odp];
   for(int p=1; p<liczba_pytan[t]+1; p++){
-      max_hist = 0;
-      suma = 0;
+      max_hist = wariancja = suma =0;
+      //mediana
       copy(test_kratki[p],test_kratki[p]+liczba_odp,mediana_tmp);
       sort(mediana_tmp,mediana_tmp+liczba_odp,sortv);
       if (liczba_odp%2){
@@ -181,35 +182,66 @@ int t = 0;
           mediana = (mediana_tmp[liczba_odp/2].wartosc+mediana_tmp[liczba_odp/2+1].wartosc)/2;
           dryf = (mediana_tmp[liczba_odp/2+1].wartosc - mediana_tmp[liczba_odp/2].wartosc)/2;
       }
+       //srednia
       for (int o=0; o<liczba_odp   ; o++){
           //cout << "wartosc_end: "<<test_kratki[p][o].wartosc<<endl;
           suma += test_kratki[p][o].wartosc;
       }
        srednia = suma/liczba_odp;
-          //smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
-        //cv::imshow("malutki", smallest);
-        //cvWaitKey(0);
+
+       //wariancja
+       for (int o=0; o<liczba_odp   ; o++){
+       wariancja +=(test_kratki[p][o].wartosc-srednia)*(test_kratki[p][o].wartosc-srednia);
+       }
+ //      cout << p << ": "<< wariancja <<endl;
+
+
+
         if(srednia<mediana){
             for (int o=0; o<liczba_odp   ; o++){
                 if (test_kratki[p][o].wartosc < mediana+(liczba_odp%2)*dryf && test_kratki[p][o].wartosc > max_hist){
                     odp = o; max_hist = test_kratki[p][o].wartosc;
                 }
-                //cout << "wartosc_end: "<<test_kratki[p][o].wartosc<<endl;
+                cout << "wartosc_end: " <<p<<": "<<test_kratki[p][o].wartosc<<endl;
             }
         }
         else{
+            int min_hist = 10000;
             for (int o=0; o<liczba_odp   ; o++){
-                if (test_kratki[p][o].wartosc > srednia && test_kratki[p][o].wartosc < max_hist){
-                    odp = o; max_hist = test_kratki[p][o].wartosc;
+                if (test_kratki[p][o].wartosc > srednia+(liczba_odp%2)*dryf && test_kratki[p][o].wartosc < min_hist){
+                    odp = o; min_hist = test_kratki[p][o].wartosc;
                 }
+                cout << "wartosc_end: " <<p<<": "<<test_kratki[p][o].wartosc<<endl;
+//                smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
+//              cv::imshow("malutki", smallest);
+//              cvWaitKey(0);
 
+            }
         }
 
-
-      student_odpowiedzi[t][p-1] = odp;
+      student_odpowiedzi[t][p-1] =  wariancja >1000 ? (liczba_odp-1-odp) : 9;
 
   }
-for (int p=0; p<liczba_pytan[t]; p++){cout<<"odp: "<<student_odpowiedzi[t][p]<<endl;}
+suma_punkty =0;
+student_punkty =0;
+for (int p=0; p<liczba_pytan[t]; p++)
+{
+      cout<<"odp: "<<student_odpowiedzi[t][p]<<endl;
+      if (student_odpowiedzi[t][p] == dobre_odpowiedzi[t][p])
+      {
+          student_punkty += punkty_odpowiedzi[t][p];
+      }
+      suma_punkty += punkty_odpowiedzi[t][p];
+}
+cout<<"\nSTUDENT: \t";
+
+for (int p=0; p<liczba_pytan[t]; p++){
+        cout <<student_odpowiedzi[t][p]<< "  ";
+}
+cout<<"\nKLUCZ:  \t";
+for (int p=0; p<liczba_pytan[t]; p++){
+        cout <<dobre_odpowiedzi[t][p]<< "  ";
+}
 //KONIEC JEDNEGO TESTU
 
 //cout<<"Znalezione kontury: "<< z <<endl;
