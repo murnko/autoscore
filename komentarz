@@ -5,10 +5,11 @@ AutoScore
     Sortowanie kratek odpowiedzi > OK
     Tworzenie tablicy na kratki z pozycjami(struct) > OK
     Przekazanie liczby odpowiedzi > OK
-4. Statystyczna analiza odpowiedzi > WORK
+4. Statystyczna analiza odpowiedzi > OK
     Mediana i średnia > OK
     Wariancja > OK
     Analiza właściwa > OK
+    Sprawdzić drugi typ odpowiedzi jeszcze >
 5. Wykrywanie wyjątków: błąd parsowania grafiki, błąd metody statystycznej >
 6. Ocena w przystępnej formie zapisana do pliku >
 7. Wykrywanie numeru zestawu > NaTn

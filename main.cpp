@@ -48,9 +48,9 @@ int t = 0;
     for (int p=0; p<liczba_pytan[t]+1;p++){
         test_kratki[p] = new kratka[liczba_odp+1];//jedno więcej na numerki
     }
-    cout <<"liczba pytan "<< liczba_pytan[t]<<endl;
+    //cout <<"liczba pytan "<< liczba_pytan[t]<<endl;
     int liczba_kratek = (liczba_pytan[t]+1)*(liczba_pytan[((int)rozm_bazy/2)]+1);
-    cout << liczba_kratek<< endl;
+    //cout << liczba_kratek<< endl;
     vector<kratka> wszystkie_kratki(liczba_kratek); //= new kratka[liczba_kratek];
 
 
@@ -116,7 +116,7 @@ int t = 0;
             pt1.y = cvRound(y0 + 1000*(a));
             pt2.x = cvRound(x0 - 1000*(-b));
             pt2.y = cvRound(y0 - 1000*(a));
-            cv::line( mask_hough, pt1, pt2, cv::Scalar(0,0,255), 1, CV_AA);
+            cv::line( mask_hough, pt1, pt2, cv::Scalar(255,255,255), 1, CV_AA);
             imshow("detected lines",  mask_hough);
             }
         }
@@ -132,28 +132,30 @@ int t = 0;
                 pt1.y = cvRound(y0 + 1000*(a));
                 pt2.x = cvRound(x0 - 1000*(-b));
                 pt2.y = cvRound(y0 - 1000*(a));
-                cv::line( mask_hough, pt1, pt2, cv::Scalar(0,0,255), 1, CV_AA);
+                cv::line( mask_hough, pt1, pt2, cv::Scalar(255,255,255), 1, CV_AA);
                 imshow("detected lines",  mask_hough);
             }
         }
-
-
-
-
         imshow("source", smallImage);
      cvWaitKey(0);
 
 //KONIEC WERSJA Z LINIAMI Hougha
-
+     int erosion_size =1;
+     cv::Mat element = cv::getStructuringElement(0,
+                                                 cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                                 cv::Point( erosion_size, erosion_size ) );
 
 
 
 
     cv::cvtColor(mask_hough,grayscale,CV_BGR2GRAY);
-    //cv::adaptiveThreshold(grayscale,binary,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV,75,10);
+    cv::adaptiveThreshold(grayscale,binary,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV,75,10);
     //cv::Canny(grayscale,binary,0,50,5);
-    binary = grayscale;
+    //binary = grayscale;
     cv::findContours(binary.clone(),contours,CV_RETR_LIST,CV_CHAIN_APPROX_SIMPLE);
+
+    cv::cvtColor(smallImage,grayscale,CV_BGR2GRAY);
+    cv::adaptiveThreshold(grayscale,binary,255,CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,75,10);
     cv::imshow("Druga kolejka", binary);
     cvWaitKey(0);
     //cv::bitwise_not(img, img);
@@ -164,6 +166,7 @@ int t = 0;
     crop.setTo(cv::Scalar(0,255,0));
     cv::Mat mask = cv::Mat::zeros(smallImage.rows, smallImage.cols, CV_8UC1);
     cv:: normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
+    float wartosc;
     for (vector<cv::Point> contour : contours)
     {
         cv::approxPolyDP(
@@ -172,10 +175,10 @@ int t = 0;
             cv::arcLength(cv::Mat(contour), true) * 0.08,
             true
         );
-        if (std::fabs(cv::contourArea(contour)) < 500 || cv::contourArea(contour) > 800)
+        if (std::fabs(cv::contourArea(contour)) < 450 || cv::contourArea(contour) > 650)
             continue;
 
-        //cout << cv::contourArea(contour) <<endl;
+        //cout <<"wielkosc: " << cv::contourArea(contour) <<endl;
         drawContours(mask, vector<vector<cv::Point> >(1,contour), -1, cv::Scalar(255), CV_FILLED);
           cv::Rect r = cv::boundingRect(contour);
           cout<< "wspolrzedne: "<<r.x<<"\t"<<r.y<<
@@ -183,7 +186,12 @@ int t = 0;
           smallest = cv::Mat(binary, r).clone();
 
         cv::imshow("malutki", smallest);
-        int wartosc = smallest.rows * smallest.cols - cv::countNonZero(smallest);
+
+
+         wartosc = 0.1*(smallest.rows * smallest.cols - cv::countNonZero(smallest));
+         dilate( smallest, smallest, element );
+         wartosc += smallest.rows * smallest.cols - cv::countNonZero(smallest);
+         cv::imshow("erozja", smallest);
         wszystkie_kratki[z].wartosc = wartosc;
         wszystkie_kratki[z].x = r.x;
         wszystkie_kratki[z].y = r.y;
@@ -191,10 +199,17 @@ int t = 0;
 
         //cout<<"wartosc: "<< wszystkie_kratki[z].wartosc << endl;
         //cout<<z<<endl;
-        cv::imshow("maska pierwsza", mask);
-        cvWaitKey(0);
+        //cv::imshow("maska pierwsza", mask);cvWaitKey(0);
+
         z++;
     }
+    if (z != liczba_kratek){
+        cout <<"\nTest: "<<t<<"\tBłąd wykrywania!";
+        exit(-2);
+        //continue; //dla dużej pętli
+    }
+
+
     //cvWaitKey(0);
 
 //    cout << endl;
@@ -215,13 +230,15 @@ int t = 0;
     }
 
 
-    for (int o=0; o<liczba_odp+1; o++){
-        for(int p=0; p<liczba_pytan[t]+1; p++){
-            cout<<"y: "<<test_kratki[p][o].y <<"\tx: " <<test_kratki[p][o].x<< endl;
-        }
-    }
-
-
+//    for (int p=0; p<liczba_pytan[t]+1; p++){
+//        for(int o=0; o<liczba_odp+1; o++){
+//            cout<<"y: "<<test_kratki[p][o].y <<"\tx: " <<test_kratki[p][o].x<< endl;
+//            cout<< "wartosc: " << test_kratki[p][o].wartosc <<endl;
+//            smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
+//            cv::imshow("malutki", smallest);
+//            cvWaitKey(0);
+//        }
+//    }
 
     //cv::imshow("small", smallImage);
     cv::imshow("maska", mask);
@@ -241,7 +258,7 @@ int t = 0;
       }
       else {
           mediana = (mediana_tmp[liczba_odp/2].wartosc+mediana_tmp[liczba_odp/2+1].wartosc)/2;
-          dryf = (mediana_tmp[liczba_odp/2+1].wartosc - mediana_tmp[liczba_odp/2].wartosc)/2;
+          dryf = abs((mediana_tmp[liczba_odp/2+1].wartosc - mediana_tmp[liczba_odp/2].wartosc)/2);
       }
        //srednia
       for (int o=0; o<liczba_odp   ; o++){
@@ -253,6 +270,9 @@ int t = 0;
        //wariancja
        for (int o=0; o<liczba_odp   ; o++){
        wariancja +=(test_kratki[p][o].wartosc-srednia)*(test_kratki[p][o].wartosc-srednia);
+//       smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
+//                   cv::imshow("malutki", smallest);
+//                   cvWaitKey(0);
        }
  //      cout << p << ": "<< wariancja <<endl;
 
@@ -269,15 +289,20 @@ int t = 0;
         else{
             int min_hist = 10000;
             for (int o=0; o<liczba_odp   ; o++){
-                if (test_kratki[p][o].wartosc > srednia+(liczba_odp%2)*dryf && test_kratki[p][o].wartosc < min_hist){
+                if (test_kratki[p][o].wartosc > srednia+(!(liczba_odp%2))*dryf && test_kratki[p][o].wartosc < min_hist){
                     odp = o; min_hist = test_kratki[p][o].wartosc;
                 }
                 cout << "wartosc_end: " <<p<<": "<<test_kratki[p][o].wartosc<<endl;
-//                smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
-//              cv::imshow("malutki", smallest);
-//              cvWaitKey(0);
+
+               smallest = cv::Mat(binary, test_kratki[p][o].r).clone();
+             cv::imshow("malutki", smallest);
+              cvWaitKey(0);
 
             }
+            cout<< "MED: "<<mediana<<endl;
+            cout<<"AVG: "<<srednia<<" +dryf= "<<srednia+(!(liczba_odp%2))*dryf<<endl;
+            cout<<"wybrany: "<< min_hist<<endl;
+            cvWaitKey(0);
         }
 
       student_odpowiedzi[t][p-1] =  wariancja >1000 ? (liczba_odp-1-odp) : 9;
